@@ -11,11 +11,6 @@ const livesLabel = document.getElementById("lives");
 const pausedTag = document.getElementById("paused-tag");
 
 const W = canvas.width, H = canvas.height;
-// Simulate the original 120 Hz laptop gameplay pace on every display.
-// The timestep is fixed in real time, independent of display refresh rate.
-let lowDetail = true;
-const detailControl = document.getElementById("detail-control");
-detailControl.addEventListener("change", () => { lowDetail = detailControl.checked; });
 
 // Pill physics. One flap carries the pill up by roughly FLAP_VY^2 / (2 * GRAVITY) pixels
 // (about 81 px at -4.6 / 0.13), which sets how tight the corridor can get.
@@ -39,8 +34,6 @@ bestLabel.textContent = best;
 
 function reset() {
   pill = { x: 118, y: 340, vy: 0 };
-  previousState = null;
-  accumulator = 0;
   score = 0;
   lives = 3;
   frame = 0;
@@ -206,7 +199,7 @@ function drawBackground() {
   ctx.fillRect(0, 0, W, H);
 
   // Soft drifting-looking particles.
-  for (let i = 0; i < (lowDetail ? 14 : 42); i++) {
+  for (let i = 0; i < 42; i++) {
     const x = (i * 79 + frame * (i % 3 + 1) * .18) % W;
     const y = (i * 137) % H;
     ctx.fillStyle = i % 3 === 0 ? "rgba(255,255,255,.42)" : "rgba(25,143,164,.22)";
@@ -216,7 +209,7 @@ function drawBackground() {
   }
 
   // Faint molecular / cellular shapes in the safe window.
-  for (let i = 0; i < (lowDetail ? 4 : 12); i++) {
+  for (let i = 0; i < 12; i++) {
     const x = (i * 47 + 18) % W;
     const y = 180 + (i * 53) % 300;
     ctx.strokeStyle = "rgba(255,255,255,.22)";
@@ -352,9 +345,9 @@ function drawHairThreshold() {
   ctx.fillRect(0, H - 44, W, 44);
 
   // Subtle rounded tissue cells that scroll with the terrain.
-  for (let row = 0; row < (lowDetail ? 9 : 30); row++) {
-    for (let k = Math.floor(scrollX / (lowDetail ? 46 : 28)) - 1; k * (lowDetail ? 46 : 28) - scrollX < W + 46; k++) {
-      const sx = k * (lowDetail ? 46 : 28) + (row % 2) * 13 + 4 - scrollX;
+  for (let row = 0; row < 30; row++) {
+    for (let k = Math.floor(scrollX / 28) - 1; k * 28 - scrollX < W + 28; k++) {
+      const sx = k * 28 + (row % 2) * 13 + 4 - scrollX;
       const y = edge(sx) + 32 + row * 15 + Math.sin(k * 1.7 + row) * 2;
       if (y > H + 8) continue;
       const r = 4 + mod(k, 3) * .7;
@@ -536,21 +529,7 @@ function update() {
   }
 }
 
-// Blend only the visual positions between fixed simulation steps.
-// Collision detection and scoring always use the unmodified 60 Hz state.
-function render(alpha = 1) {
-  const simScrollX = scrollX;
-  const simFrame = frame;
-  const simPill = pill;
-  if (running && !paused && previousState) {
-    scrollX = previousState.scrollX + (simScrollX - previousState.scrollX) * alpha;
-    frame = previousState.frame + (simFrame - previousState.frame) * alpha;
-    pill = { ...simPill,
-      x: previousState.x + (simPill.x - previousState.x) * alpha,
-      y: previousState.y + (simPill.y - previousState.y) * alpha,
-      vy: previousState.vy + (simPill.vy - previousState.vy) * alpha
-    };
-  }
+function render() {
   drawBackground();
   drawCardiacThreshold();
   drawHairThreshold();
@@ -561,10 +540,6 @@ function render(alpha = 1) {
     // Brief blink after taking damage.
     if (damageCooldown === 0 || Math.floor(damageCooldown / 5) % 2 === 0) drawPill();
   }
-  // Restore authoritative physics state before the next update or input event.
-  scrollX = simScrollX;
-  frame = simFrame;
-  pill = simPill;
 }
 
 function togglePause() {
@@ -605,38 +580,13 @@ introMs = 0;
 initTerrain();
 updateLives();
 
-// Fixed-step simulation: original 120 Hz gameplay pace on all displays.
-// Rendering can run at the monitor's own refresh rate.
-const STEP_MS = 1000 / 120;
 let lastTime = performance.now();
-let accumulator = 0;
-let previousState = null;
-function captureState() {
-  return { x: pill.x, y: pill.y, vy: pill.vy, scrollX, frame };
-}
-function loop(now) {
-  const elapsed = Math.min(250, Math.max(0, now - lastTime));
+function loop(now = performance.now()) {
+  const dt = Math.min(50, now - lastTime);   // ignore long gaps (e.g. a background tab)
   lastTime = now;
-
-  if (running && !paused) {
-    accumulator += elapsed;
-    // Limit catch-up work after a stall to keep the browser responsive.
-    let steps = 0;
-    while (accumulator >= STEP_MS && steps < 24 && running && !paused) {
-      previousState = captureState();
-      update();
-      introMs = Math.max(0, introMs - STEP_MS);
-      accumulator -= STEP_MS;
-      steps++;
-    }
-    if (steps === 24) accumulator = 0; // If this happens frequently, device cannot sustain the selected speed.
-  } else {
-    // Do not fast-forward when the game resumes after a pause.
-    accumulator = 0;
-    previousState = null;
-  }
-
-  render(previousState ? accumulator / STEP_MS : 1);
+  update();
+  if (running && !paused && introMs > 0) introMs -= dt;   // real time, and it pauses with the game
+  render();
   requestAnimationFrame(loop);
 }
-requestAnimationFrame(loop);
+loop();
