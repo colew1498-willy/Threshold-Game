@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Threshold Balance</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="page-heading">
+      <h1>Threshold Balance</h1>
+      <p>Stay inside the optimal therapeutic window.</p>
+    </header>
+
+    <section class="device">
+      <div class="game-topbar">
+        <div class="score-card">
+          <span>Score</span>
+          <strong id="score">0</strong>
+          <small>Best <b id="best">0</b></small>
+        </div>
+        <div class="lives-card">
+          <span>Lives</span>
+          <strong id="lives" aria-label="3 lives"></strong>
+        </div>
+        <button id="pause-button" class="pause-button" aria-label="Pause game">Ⅱ</button>
+      </div>
+
+      <div class="playfield">
+        <canvas id="game" width="640" height="580" aria-label="Threshold Balance game area"></canvas>
+        <div class="start-menu" id="start-menu">
+          <div class="start-menu-panel">
+            <h2>Threshold Balance</h2>
+            <p>Keep the minoxidil between the cardiac and hair loss thresholds. The speed will increase the longer you progress. Pop the bubbles to gain a boost to your score!</p>
+            <button id="start-button">Begin Game</button>
+          </div>
+        </div>
+        <div class="overlay hidden" id="overlay">
+          <div class="overlay-panel">
+            <h2 id="overlay-title">Threshold crossed</h2>
+            <p id="overlay-copy"></p>
+            <button id="restart-button">Try again</button>
+          </div>
+        </div>
+        <div class="paused-tag" id="paused-tag">PAUSED</div>
+      </div>
+      <div class="device-caption">
+        <span>Cardiac activity threshold</span>
+        <span>Optimal therapeutic window</span>
+        <span>Hair growth threshold</span>
+      </div>
+    </section>
+    <footer>
+      <span>Space / ↑ / tap to flap</span>
+      <span>Stay in the blue-green zone</span>
+    </footer>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
