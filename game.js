@@ -15,10 +15,10 @@ const pausedTag = document.getElementById("paused-tag");
 const W = canvas.width, H = canvas.height;
 
 // Pill physics. Values are calibrated to the original 120 Hz timing.
-const FLAP_VY = -4.6, GRAVITY = 0.13, MAX_FALL = 2.2;
+const FLAP_VY = -4.6, GRAVITY = 0.13, MAX_FALL = 2.1;
 
 // Damage timing and speed recovery, measured in original 120 Hz frames.
-const HIT_INVINCIBLE_FRAMES = 220;
+const HIT_INVINCIBLE_FRAMES = 250;
 const HIT_SLOW = 0.5;
 const SPEED_RECOVERY = 0.008;
 
