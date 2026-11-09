@@ -15,10 +15,10 @@ const pausedTag = document.getElementById("paused-tag");
 const W = canvas.width, H = canvas.height;
 
 // Pill physics. Values are calibrated to the original 120 Hz timing.
-const FLAP_VY = -4.6, GRAVITY = 0.13, MAX_FALL = 4.2;
+const FLAP_VY = -4.6, GRAVITY = 0.13, MAX_FALL = 2.2;
 
 // Damage timing and speed recovery, measured in original 120 Hz frames.
-const HIT_INVINCIBLE_FRAMES = 120;
+const HIT_INVINCIBLE_FRAMES = 220;
 const HIT_SLOW = 0.5;
 const SPEED_RECOVERY = 0.008;
 
@@ -112,7 +112,7 @@ function finish() {
     bestLabel.textContent = best;
   }
 
-  overlayTitle.textContent = "Threshold crossed";
+  overlayTitle.textContent = "Threshold Crossed";
   overlayCopy.textContent = `Your score was ${score}. Try to keep the pill inside the optimal therapeutic window for longer.`;
   overlay.classList.remove("hidden");
 }
@@ -739,7 +739,7 @@ function update(dt) {
   const acceleratingTime = Math.min(timeScale, timeToTerminal);
 
   pill.y += pill.vy * timeScale
-    + 0.5 * GRAVITY * acceleratingTime * acceleratingTime
+    + 0.5 * GRAVITY * acceleratingTime * (acceleratingTime - 1)
     + MAX_FALL * (timeScale - acceleratingTime);
 
   pill.vy = Math.min(pill.vy + GRAVITY * timeScale, MAX_FALL);
